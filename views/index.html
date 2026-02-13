@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Content Generator - App</title>
+    <style>
+      /* ======================================================================== */
+      /* --- BASE STYLES --- */
+      /* ======================================================================== */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4; /* Light theme background */
+        color: #333;
+      }
+      .container {
+        max-width: 900px;
+        margin: 20px auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2,
+      h3 {
+        color: #0056b3;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .auth-links {
+        text-align: right;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+      }
+      #logoutButton {
+        background-color: #dc3545;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.3s ease;
+        width: auto;
+      }
+      #logoutButton:hover {
+        background-color: #c82333;
+      }
+      input[type="text"],
+      input[type="file"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .generate-button-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      .generate-button-wrapper button {
+        width: auto;
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      /* Custom button styling for the new Enhance button */
+      #enhance-button {
+          background-color: #9c27b0; /* Purple for LLM function */
+          font-weight: bold;
+          width: 100%;
+          margin-bottom: 15px;
+      }
+      #enhance-button:hover:not(:disabled) {
+          background-color: #7b1fa2;
+      }
+      #enhance-video-button {
+          background-color: #9c27b0; /* Purple for LLM function */
+          font-weight: bold;
+          width: 100%;
+          margin-bottom: 15px;
+      }
+      #enhance-video-button:hover:not(:disabled) {
+          background-color: #7b1fa2;
+      }
+
+      button {
+        box-sizing: border-box;
+        margin-top: 5px;
+      }
+      button:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .generation-section {
+        background: #e9ecef;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .message {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+      .message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6fb; }
+      .message.info { background-color: #cfe2ff; color: #084298; border: 1px solid #b6d4fe; }
+      .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+      .gallery-item { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 350px; cursor: pointer; }
+      .gallery-item img, .gallery-item video { width: 100%; height: 200px; object-fit: cover; display: block; }
+      .gallery-item .status-message { padding: 15px; background-color: #ffc107; color: #333; font-weight: bold; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+      .gallery-item .item-info { padding: 10px; margin-top: auto; }
+      .gallery-item .item-prompt { font-style: italic; }
+      
+      /* --- ADVANCED CONTROL STYLES --- */
+      .advanced-control-wrapper { margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; overflow: hidden; background-color: #f9f9f9; }
+      .control-header { padding: 10px 15px; background-color: #e0e0e0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #555; }
+      .control-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; padding: 0 15px; }
+      .advanced-control-wrapper.open .control-content { max-height: 500px; padding: 15px; }
+      .toggle-icon { transition: transform 0.3s; font-size: 1.2em; }
+      .advanced-control-wrapper.open .toggle-icon { transform: rotate(90deg); }
+      
+      /* --- SUGGESTION AND PROMPT ENHANCE STYLES --- */
+      .suggestions-container { margin-top: 10px; margin-bottom: 15px; }
+      .suggestion-category-buttons button.active { background-color: #0056b3; }
+      .suggestion-items { display: flex; flex-wrap: wrap; gap: 5px; }
+      .suggestion-item { padding: 5px 10px; background: #e9ecef; border-radius: 15px; font-size: 0.85em; cursor: pointer; border: 1px solid #ddd; }
+      .suggested-text-content {
+          font-style: italic;
+          color: #155724; /* Dark green text */
+          background-color: #d4edda; /* Light green background */
+          padding: 8px;
+          border-radius: 4px;
+          display: block;
+          cursor: pointer;
+      }
+      #prompt-suggestion-area {
+          background-color: #f0f0f0;
+          border: 1px solid #c3e6cb;
+          padding: 10px;
+          margin-bottom: 15px;
+          border-radius: 6px;
+      }
+      #video-prompt-suggestion-area {
+          background-color: #f0f0f0;
+          border: 1px solid #c3e6cb;
+          padding: 10px;
+          margin-bottom: 15px;
+          border-radius: 6px;
+      }
+      
+      /* --- GALLERY PROMPT TRUNCATION (CRITICAL) --- */
+      .gallery-item .item-prompt {
+          font-style: italic;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
+      }
+
+      /* --- COLOR/RANGE STYLES --- */
+      input[type="range"] { width: 100%; appearance: none; -webkit-appearance: none; background: transparent; margin: 10px 0; }
+      input[type="range"]::-webkit-slider-runnable-track { height: 8px; cursor: pointer; background: #ddd; border-radius: 4px; }
+      input[type="range"]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #007bff; cursor: pointer; margin-top: -5px; }
+      #hue-range::-webkit-slider-runnable-track { background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red); }
+      #saturation-range::-webkit-slider-runnable-track { background: linear-gradient(to right, #ccc, #007bff); }
+      #brightness-range::-webkit-slider-runnable-track { background: linear-gradient(to right, #000, #fff); }
+      .color-wheel-visualizer { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-top: 5px; }
+      #selected-color-preview { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #333; }
+      #current-color-value { font-style: italic; font-size: 0.9em; color: #555; }
+      #slider-value { font-weight: bold; color: #0056b3; }
+      
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="auth-links">
+        <span id="welcomeMessage">Welcome to the App!</span>
+        <button id="logoutButton">Logout</button>
+      </div>
+      <h1>AI Content Generator</h1>
+      <div>
+        <div class="generation-section">
+          <h3>Generate Image from Text/Image-to-Image</h3>
+          <input
+            type="text"
+            id="imagePrompt"
+            placeholder="Enter your prompt for image (e.g., 'a cat in space, cinematic photo')"
+          />
+          
+          <div class="generate-button-wrapper" style="margin-top: -10px; margin-bottom: 15px;">
+              <label for="sourceImageUpload" style="width: 100%; text-align: center; background-color: #f0f0f0; border: 1px solid #ccc; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                  Click to Upload Source Image for Editing (Optional)
+              </label>
+              <input type="file" id="sourceImageUpload" accept="image/*" style="display: none;" />
+          </div>
+          <div id="image-preview-area" style="margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; display: none; align-items: center; background-color: #fff;">
+              <img id="source-image-preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">
+              <span id="preview-filename-text" style="flex-grow: 1; font-size: 0.9em;"></span>
+              <button onclick="clearSourceImage()" style="width: auto; padding: 5px 10px; font-size: 0.8em; background-color: #dc3545; margin: 0;">Clear</button>
+          </div>
+          <button id="enhance-button" onclick="sendPromptForEnhancement()"
+              style="width: 100%; margin-bottom: 15px; background-color: #9c27b0; border-radius: 5px;">
+              ✨ Enhance Prompt (Chatbot Assistant)
+          </button>
+          
+          <div id="prompt-suggestion-area" class="hidden mb-4 p-3">
+              </div>
+
+          <div class="advanced-control-wrapper" id="colorControlWrapper">
+            <div
+              class="control-header"
+              onclick="toggleControl('colorControlWrapper')"
+            >
+              <span>🎨 Color Palette & Control</span>
+              <span class="toggle-icon">></span>
+            </div>
+            <div class="control-content">
+              <div class="color-wheel-visualizer">
+                <div
+                  id="selected-color-preview"
+                  style="background-color: hsl(240, 70%, 50%)"
+                ></div>
+                <p id="current-color-value">Default: HSL(240, 70%, 50%)</p>
+              </div>
+
+              <label for="hue-range">Color Wheel (Hue)</label>
+              <input
+                type="range"
+                id="hue-range"
+                min="0"
+                max="360"
+                step="1"
+                value="240"
+                oninput="updateColorControls()"
+              />
+              <label for="saturation-range">Saturation Level</label>
+              <input
+                type="range"
+                id="saturation-range"
+                min="0"
+                max="100"
+                step="5"
+                value="70"
+                oninput="updateColorControls()"
+              />
+              <label for="brightness-range">Brightness (Value)</label>
+              <input
+                type="range"
+                id="brightness-range"
+                min="0"
+                max="100"
+                step="5"
+                value="50"
+                oninput="updateColorControls()"
+              />
+            </div>
+          </div>
+          <div class="advanced-control-wrapper" id="realismControlWrapper">
+            <div
+              class="control-header"
+              onclick="toggleControl('realismControlWrapper')"
+            >
+              <span>✨ Realism / Detail Level</span>
+              <span class="toggle-icon">></span>
+            </div>
+            <div class="control-content">
+              <label for="realism-slider">
+                <span>Current Level:</span>
+                <span id="slider-value">7/10</span>
+              </label>
+              <input
+                type="range"
+                id="realism-slider"
+                min="1"
+                max="10"
+                step="1"
+                value="7"
+                oninput="updateRealismPrompt(this.value)"
+              />
+            </div>
+          </div>
+          <div class="suggestions-container">
+            <div
+              id="suggestionCategoryButtons"
+              class="suggestion-category-buttons"
+            ></div>
+            <div id="suggestionItems" class="suggestion-items"></div>
+          </div>
+          <div class="generate-button-wrapper">
+            <button id="generateImageBtn">Generate Image</button>
+          </div>
+        </div>
+        <div class="generation-section">
+          <h3>Generate Video from Text</h3>
+          <input
+            type="text"
+            id="videoTextPrompt"
+            placeholder="Enter your prompt for video (e.g., 'a futuristic city at night')"
+          />
+          <button id="enhance-video-button" onclick="sendVideoPromptForEnhancement()"
+              style="width: 100%; margin-bottom: 15px; background-color: #9c27b0; border-radius: 5px;">
+              ✨ Enhance Video Prompt (Chatbot Assistant)
+          </button>
+          
+          <div id="video-prompt-suggestion-area" class="hidden mb-4 p-3">
+              </div>
+          <div class="generate-button-wrapper">
+            <button id="generateVideoFromTextBtn">Generate Video</button>
+          </div>
+        </div>
+        <div class="generation-section">
+          <h3>Generate Story from File</h3>
+          <input type="file" id="storyFileInput" accept=".txt,.pdf,.doc,.docx" />
+          <div class="generate-button-wrapper">
+            <button id="generateStoryFromFileBtn">Generate Story</button>
+          </div>
+        </div>
+        <div class="generation-section">
+          <h3>Generate Video from File (e.g., image to 5s video)</h3>
+          <input type="file" id="videoFile" />
+          <div class="generate-button-wrapper">
+            <button id="generateVideoFromFileBtn">
+              Generate Video from File
+            </button>
+          </div>
+        </div>
+        <p class="message" id="generalStatusMessage"></p>
+        <h2>Your Gallery</h2>
+        <div class="gallery-grid" id="galleryContainer">
+          <p
+            id="galleryEmptyMessage"
+            style="text-align: center; width: 100%; display: none"
+          >
+            No generated content yet. Start generating!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const categorizedSuggestionsData = {
+        subjects: [
+          "A bustling futuristic city",
+          "A serene mountain landscape",
+          "A whimsical creature",
+          "A valiant knight",
+          "A cozy study",
+        ],
+        styles: [
+          "oil painting",
+          "watercolor",
+          "3D render",
+          "cinematic photo",
+          "hyperrealistic",
+          "anime style",
+          "pixel art",
+        ],
+        artists: [
+          "by Greg Rutkowski",
+          "by Artgerm",
+          "by Studio Ghibli",
+          "by Katsuhiro Otomo",
+        ],
+        lighting: [
+          "cinematic lighting",
+          "dramatic shadows",
+          "volumetric lighting",
+          "soft natural light",
+          "neon glow",
+        ],
+        camera: [
+          "low angle shot, powerful perspective",
+          "high angle shot, looking down",
+          "dutch angle, tilted frame, dramatic",
+          "bird's-eye view, top-down",
+          "close-up portrait, shallow depth of field",
+          "full body shot, subject in frame",
+          "wide angle lens",
+          "50mm prime lens",
+        ],
+        quality: [
+          "masterpiece",
+          "highly detailed",
+          "8k resolution",
+          "sharp focus",
+          "best quality",
+          "trending on Artstation",
+        ],
+      };
+
+      const imagePromptInput = document.getElementById("imagePrompt");
+      const realismSlider = document.getElementById("realism-slider");
+      const sliderValueSpan = document.getElementById("slider-value");
+      const hueRange = document.getElementById("hue-range");
+      const saturationRange = document.getElementById("saturation-range");
+      const brightnessRange = document.getElementById("brightness-range");
+      const colorPreview = document.getElementById("selected-color-preview");
+      const currentColorValue = document.getElementById("current-color-value");
+      const suggestionCategoryButtons = document.getElementById(
+        "suggestionCategoryButtons"
+      );
+      const suggestionItems = document.getElementById("suggestionItems");
+      const logoutButton = document.getElementById("logoutButton");
+      const generateImageBtn = document.getElementById("generateImageBtn");
+      const generalStatusMessage = document.getElementById(
+        "generalStatusMessage"
+      );
+      const galleryContainer = document.getElementById("galleryContainer");
+      const galleryEmptyMessage = document.getElementById(
+        "galleryEmptyMessage"
+      );
+
+      const enhanceButton = document.getElementById('enhance-button'); 
+      const promptSuggestionArea = document.getElementById('prompt-suggestion-area'); 
+      const enhanceVideoButton = document.getElementById('enhance-video-button');
+      const videoPromptInput = document.getElementById('videoTextPrompt');
+      const videoSuggestionArea = document.getElementById('video-prompt-suggestion-area');
+
+      // --- NEW IMAGE-TO-IMAGE STATE AND ELEMENTS ---
+      let uploadedBase64Image = null; 
+      let uploadedMimeType = null;
+      let uploadedFileName = null;
+      const sourceImageUpload = document.getElementById('sourceImageUpload');
+      const imagePreviewArea = document.getElementById('image-preview-area');
+      const sourceImagePreview = document.getElementById('source-image-preview');
+      const previewFilenameText = document.getElementById('preview-filename-text');
+      // ---------------------------------------------
+
+
+      let currentPromptAdditions = {
+        color: "dominant color HSL(240, 70%, 50%)",
+        realism: "highly detailed, smooth finish",
+      };
+
+      // --- IMAGE FILE HANDLING FUNCTION ---
+      function handleImageFile(file) {
+          const statusDiv = document.getElementById('generalStatusMessage');
+          
+          if (!file) {
+              uploadedBase64Image = null;
+              uploadedMimeType = null;
+              uploadedFileName = null;
+              imagePreviewArea.style.display = 'none'; // Hide preview
+              statusDiv.className = 'message info';
+              statusDiv.textContent = 'Mode: Text-to-Image.';
+              return;
+          }
+
+          if (!file.type.startsWith('image/')) {
+              statusDiv.className = 'message error';
+              statusDiv.textContent = 'Please select a valid image file.';
+              return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              const dataUrl = e.target.result;
+              
+              uploadedMimeType = file.type;
+              uploadedBase64Image = dataUrl.split(',')[1];
+              uploadedFileName = file.name.split('.')[0];
+              
+              // Display the image preview and file name
+              sourceImagePreview.src = dataUrl;
+              previewFilenameText.textContent = file.name;
+              imagePreviewArea.style.display = 'flex'; // Show preview area
+              
+              statusDiv.className = 'message success';
+              statusDiv.textContent = `Image loaded (${file.name}). Mode: Image-to-Image. Context: "${uploadedFileName}".`;
+          };
+          reader.readAsDataURL(file);
+      }
+      
+      // NEW: Clear function attached to the clear button in the HTML
+      window.clearSourceImage = function() {
+          document.getElementById('sourceImageUpload').value = '';
+          handleImageFile(null); 
+      };
+      
+      // Attach the file reader function to the input element
+      document.addEventListener('DOMContentLoaded', () => {
+          sourceImageUpload.addEventListener('change', (e) => {
+              handleImageFile(e.target.files[0]);
+          });
+          // ... (rest of DOMContentLoaded listeners)
+      });
+      // -------------------------------------
+
+
+      // --- HELPER FUNCTION FOR ACCURACY SCORING ---
+      /**
+       * Helper function to extract only the core subject from the full prompt.
+       */
+      function getSubjectOnly(fullPrompt) {
+          // 1. Remove parenthetical weighting, which can confuse simple extraction
+          let cleanPrompt = fullPrompt.replace(/\([^:]+:\d+\.\d+\)/g, '').trim(); 
+          
+          // 2. Find the first major separator (usually a comma) or limit to 5 words
+          let parts = cleanPrompt.split(',');
+          let subject = parts[0].trim();
+
+          // 3. Take the first few words to isolate the core concept
+          return subject.split(/\s+/).slice(0, 5).join(' ');
+      }
+
+      // --- ACCURACY CALCULATION FUNCTION ---
+      async function calculateScore(filePath, prompt, buttonElement) {
+          if (buttonElement.disabled) return; 
+
+          const originalText = buttonElement.textContent;
+          const originalColor = buttonElement.style.backgroundColor;
+
+          buttonElement.disabled = true;
+          buttonElement.textContent = 'Calculating...';
+          
+          const payload = { filePath: filePath, prompt: prompt };
+          let scoreCalculated = false; 
+
+          try {
+              const res = await fetch("/api/image/score", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+              });
+              const data = await res.json();
+              
+              if (data.success && data.score !== undefined) {
+                  const scorePercent = (data.score * 100).toFixed(1);
+                  buttonElement.textContent = `Accuracy: ${scorePercent}%`;
+                  buttonElement.style.backgroundColor = '#28a745';
+                  scoreCalculated = true;
+              } else {
+                  buttonElement.textContent = 'Failed';
+                  buttonElement.style.backgroundColor = '#dc3545';
+                  console.error('Score API Failed:', data.msg || 'No score returned.');
+              }
+          } catch (error) {
+              buttonElement.textContent = 'Error';
+              buttonElement.style.backgroundColor = '#dc3545';
+              console.error('Network/Parsing Error:', error);
+          } finally {
+              if (!scoreCalculated) {
+                   setTimeout(() => {
+                       buttonElement.textContent = originalText;
+                       buttonElement.style.backgroundColor = originalColor;
+                       buttonElement.disabled = false;
+                   }, 3000); 
+              }
+          }
+      }
+
+      // --- NEW CHATBOT ENHANCEMENT FUNCTION ---
+      
+      /**
+       * Fills the main image prompt input field with the enhanced prompt.
+       */
+      function applyEnhancedPrompt(enhancedPrompt) {
+          imagePromptInput.value = enhancedPrompt;
+          // Hide the suggestion area after applying the text
+          promptSuggestionArea.classList.add('hidden');
+          imagePromptInput.focus();
+      }
+      
+      async function sendPromptForEnhancement() {
+          const prompt = imagePromptInput.value.trim();
+          if (!prompt) {
+               generalStatusMessage.className = "message error";
+               generalStatusMessage.textContent = "Please enter a starting idea in the input box first.";
+               return;
+          }
+
+          enhanceButton.disabled = true;
+          const originalText = enhanceButton.textContent;
+          enhanceButton.textContent = "Enhancing...";
+          
+          // Show loading message in the designated area
+          promptSuggestionArea.classList.remove('hidden');
+          promptSuggestionArea.style.backgroundColor = '#cfe2ff';
+          promptSuggestionArea.innerHTML = '<p class="text-gray-900 font-semibold">Contacting Assistant...</p>';
+
+
+          try {
+              const res = await fetch("/api/prompt/enhance", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ originalPrompt: prompt }),
+              });
+              const data = await res.json();
+              
+              if (data.success && data.enhancedPrompt) {
+                  // 1. Construct the clickable suggestion HTML
+                  const clickableHtml = `
+                      <p class="text-sm font-semibold mb-2 text-gray-800">✨ Assistant Suggests:</p>
+                      <span class="suggested-text-content" 
+                            onclick="applyEnhancedPrompt('${data.enhancedPrompt.replace(/'/g, "\\'")}')">
+                          ${data.enhancedPrompt} (Click to apply)
+                      </span>
+                  `;
+                  // 2. Display the suggestion and set success color
+                  promptSuggestionArea.style.backgroundColor = '#d4edda';
+                  promptSuggestionArea.innerHTML = clickableHtml;
+                  generalStatusMessage.className = "message success";
+                  generalStatusMessage.textContent = "Prompt suggestion received!";
+              } else {
+                  // Handle failure from the API
+                  promptSuggestionArea.style.backgroundColor = '#f8d7da';
+                  promptSuggestionArea.innerHTML = `<p class="text-red-700 font-semibold">Error: ${data.msg || 'No enhancement received.'}</p>`;
+                  generalStatusMessage.className = "message error";
+              }
+
+          } catch (error) {
+              // Handle network error
+              promptSuggestionArea.style.backgroundColor = '#f8d7da';
+              promptSuggestionArea.innerHTML = `<p class="text-red-700 font-semibold">Network Error. Check the console.</p>`;
+              generalStatusMessage.className = "message error";
+              console.error("Enhance Prompt API Error:", error);
+
+          } finally {
+              enhanceButton.textContent = originalText;
+              enhanceButton.disabled = false;
+          }
+      }
+
+      function applyEnhancedVideoPrompt(enhancedPrompt) {
+          videoTextPrompt.value = enhancedPrompt;
+          videoSuggestionArea.classList.add('hidden');
+          videoTextPrompt.focus();
+      }
+
+      async function sendVideoPromptForEnhancement() {
+          const prompt = videoTextPrompt.value.trim();
+          if (!prompt) {
+              generalStatusMessage.className = "message error";
+              generalStatusMessage.textContent = "Please enter a starting idea in the video input box first.";
+              return;
+          }
+
+          enhanceVideoButton.disabled = true;
+          const originalText = enhanceVideoButton.textContent;
+          enhanceVideoButton.textContent = "Enhancing...";
+          
+          videoSuggestionArea.classList.remove('hidden');
+          videoSuggestionArea.style.backgroundColor = '#cfe2ff';
+          videoSuggestionArea.innerHTML = '<p class="text-gray-900 font-semibold">Contacting Assistant...</p>';
+
+
+          try {
+              const res = await fetch("/api/prompt/enhance", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ originalPrompt: prompt }),
+              });
+              const data = await res.json();
+              
+              if (data.success && data.enhancedPrompt) {
+                  const clickableHtml = `
+                      <p class="text-sm font-semibold mb-2 text-gray-800">✨ Assistant Suggests:</p>
+                      <span class="suggested-text-content" 
+                            onclick="applyEnhancedVideoPrompt('${data.enhancedPrompt.replace(/'/g, "\\'")}')">
+                          ${data.enhancedPrompt} (Click to apply)
+                      </span>
+                  `;
+                  videoSuggestionArea.style.backgroundColor = '#d4edda';
+                  videoSuggestionArea.innerHTML = clickableHtml;
+                  generalStatusMessage.className = "message success";
+                  generalStatusMessage.textContent = "Video prompt suggestion received!";
+              } else {
+                  videoSuggestionArea.style.backgroundColor = '#f8d7da';
+                  videoSuggestionArea.innerHTML = `<p class="text-red-700 font-semibold">Error: ${data.msg || 'No enhancement received.'}</p>`;
+                  generalStatusMessage.className = "message error";
+              }
+
+          } catch (error) {
+              videoSuggestionArea.style.backgroundColor = '#f8d7da';
+              videoSuggestionArea.innerHTML = `<p class="text-red-700 font-semibold">Network Error. Check the console.</p>`;
+              generalStatusMessage.className = "message error";
+              console.error("Video Enhance Prompt API Error:", error);
+
+          } finally {
+              enhanceVideoButton.textContent = originalText;
+              enhanceVideoButton.disabled = false;
+          }
+      }
+
+
+      function toggleControl(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        wrapper.classList.toggle("open");
+      }
+      function updateColorControls() {
+        const h = hueRange.value;
+        const s = saturationRange.value;
+        const l = brightnessRange.value;
+        const hslColor = `hsl(${h}, ${s}%, ${l}%)`;
+        colorPreview.style.backgroundColor = hslColor;
+        saturationRange.style.setProperty(
+          "background",
+          `linear-gradient(to right, hsl(${h}, 0%, 50%), hsl(${h}, 100%, 50%))`
+        );
+        const promptText = `dominant color HSL(${h}, ${s}%, ${l}%)`;
+        currentColorValue.textContent = promptText;
+        currentPromptAdditions.color = promptText;
+      }
+      function updateRealismPrompt(value) {
+        sliderValueSpan.textContent = `${value}/10`;
+        let promptText = "";
+        if (value >= 8) {
+          promptText =
+            "hyperrealistic, 8k resolution, intricate detail, cinematic quality";
+        } else if (value >= 5) {
+          promptText = "highly detailed, smooth finish, sharp focus";
+        } else {
+          promptText = "artistic sketch, simple details, muted colors";
+        }
+        currentPromptAdditions.realism = promptText;
+      }
+      function getFinalImagePrompt() {
+        const mainPrompt = imagePromptInput.value.trim();
+        if (!mainPrompt) {
+          return "";
+        }
+        const realismTag = currentPromptAdditions.realism;
+        const colorTag = currentPromptAdditions.color;
+        const additions = [realismTag, colorTag]
+          .filter((p) => p.trim() !== "")
+          .join(", ");
+
+        if (additions) {
+          return `${mainPrompt}, ${additions}`;
+        }
+        return mainPrompt;
+      }
+      function renderCategoryButtons() {
+        suggestionCategoryButtons.innerHTML = "";
+        for (const category in categorizedSuggestionsData) {
+          const button = document.createElement("button");
+          button.textContent =
+            category.charAt(0).toUpperCase() + category.slice(1);
+
+          button.addEventListener("click", () => {
+            renderSuggestions(categorizedSuggestionsData[category]);
+            setActiveCategory(category);
+          });
+          suggestionCategoryButtons.appendChild(button);
+        }
+      }
+      function setActiveCategory(category) {
+        const buttons = suggestionCategoryButtons.querySelectorAll("button");
+        buttons.forEach((button) => {
+          if (button.textContent.toLowerCase() === category) {
+            button.classList.add("active");
+          } else {
+            button.classList.remove("active");
+          }
+        });
+      }
+      function renderSuggestions(suggestions) {
+        suggestionItems.innerHTML = "";
+        suggestions.forEach((suggestion) => {
+          const item = document.createElement("div");
+          item.className = "suggestion-item";
+          item.textContent = suggestion;
+          item.addEventListener("click", () => {
+            const currentPrompt = imagePromptInput.value.trim();
+            const promptToAdd = suggestion;
+
+            if (currentPrompt) {
+              imagePromptInput.value = currentPrompt + ", " + promptToAdd;
+            } else {
+              imagePromptInput.value = promptToAdd;
+            }
+            imagePromptInput.focus();
+          });
+          suggestionItems.appendChild(item);
+        });
+      }
+      logoutButton.addEventListener("click", async () => {
+        try {
+          const res = await fetch("/api/logout", { method: "POST" });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            generalStatusMessage.className = "message success";
+            generalStatusMessage.textContent = data.msg;
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 500);
+          } else {
+            generalStatusMessage.className = "message error";
+            generalStatusMessage.textContent = data.msg || "Logout failed.";
+          }
+        } catch (error) {
+          console.error("Logout error:", error);
+          generalStatusMessage.className = "message error";
+          generalStatusMessage.textContent = "An error occurred during logout.";
+        }
+      });
+      generateImageBtn.addEventListener("click", async () => {
+        const prompt = getFinalImagePrompt();
+        
+        // --- NEW I2I CHECK ---
+        const isImageEdit = !!uploadedBase64Image;
+        const originalPrompt = prompt; // Original prompt including controls
+        
+        // Construct the payload for both modes
+        let payload = { prompt: originalPrompt };
+        
+        if (!prompt) {
+          generalStatusMessage.className = "message error";
+          generalStatusMessage.textContent =
+            "Please enter a subject and/or use the controls.";
+          return;
+        }
+
+        generalStatusMessage.className = "message info";
+        generalStatusMessage.textContent = isImageEdit 
+            ? `Editing image, based on: "${uploadedFileName}"...` 
+            : `Generating image with prompt: "${prompt}"...`;
+        
+        generateImageBtn.disabled = true;
+
+        if (isImageEdit) {
+            // I2I MODE: Prepend filename and add image data
+            payload.prompt = `${uploadedFileName}, ${originalPrompt}`;
+            payload.base64Image = uploadedBase64Image;
+            payload.mimeType = uploadedMimeType;
+        }
+
+        try {
+          const res = await fetch("/api/generate/image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            generalStatusMessage.className = "message success";
+            generalStatusMessage.textContent = data.msg;
+            await fetchGallery();
+          } else {
+            generalStatusMessage.className = "message error";
+            generalStatusMessage.textContent =
+              data.msg || "Image generation failed.";
+          }
+        } catch (error) {
+          console.error("Image generation error:", error);
+          generalStatusMessage.className = "message error";
+          generalStatusMessage.textContent =
+            "An error occurred during image generation.";
+        } finally {
+          generateImageBtn.disabled = false;
+        }
+      });
+
+      document
+        .getElementById("generateVideoFromTextBtn")
+        .addEventListener("click", async () => {
+          const videoTextPromptInput =
+            document.getElementById("videoTextPrompt");
+          const prompt = videoTextPromptInput.value.trim();
+
+          if (!prompt) {
+            generalStatusMessage.className = "message error";
+            generalStatusMessage.textContent =
+              "Please enter a prompt for video generation.";
+            return;
+          }
+
+          generalStatusMessage.className = "message info";
+          generalStatusMessage.textContent = `Generating video from prompt: "${prompt}"... (This may take a moment)`;
+          const generateVideoFromTextBtn = document.getElementById(
+            "generateVideoFromTextBtn"
+          );
+          generateVideoFromTextBtn.disabled = true;
+
+          const payload = { prompt: prompt };
+
+          try {
+            const res = await fetch("/api/generate/video/text", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+              generalStatusMessage.className = "message success";
+              generalStatusMessage.textContent = data.msg;
+              await fetchGallery();
+            } else {
+              generalStatusMessage.className = "message error";
+              generalStatusMessage.textContent =
+                data.msg || "Video generation failed to start on server.";
+            }
+          } catch (error) {
+            console.error("Video generation start error:", error);
+            generalStatusMessage.className = "message error";
+            generalStatusMessage.textContent =
+              "An error occurred during video generation start.";
+          } finally {
+            generateVideoFromTextBtn.disabled = false;
+          }
+        });
+      document
+        .getElementById("generateVideoFromFileBtn")
+        .addEventListener("click", () => {
+          generalStatusMessage.className = "message info";
+          generalStatusMessage.textContent =
+            "Video from File generation started (placeholder).";
+        });
+      document
+        .getElementById("generateStoryFromFileBtn")
+        .addEventListener("click", () => {
+          generalStatusMessage.className = "message info";
+          generalStatusMessage.textContent =
+            "Story generation started (placeholder).";
+        });
+      async function fetchGallery() {
+        try {
+          const res = await fetch("/api/gallery");
+          if (res.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+          const data = await res.json();
+          if (res.ok && data.success) {
+            renderGallery(data.gallery);
+          } else {
+            generalStatusMessage.className = "message error";
+            generalStatusMessage.textContent =
+              data.msg || "Failed to load gallery.";
+            galleryContainer.innerHTML = "";
+            galleryEmptyMessage.style.display = "block";
+          }
+        } catch (error) {
+          generalStatusMessage.className = "message error";
+          generalStatusMessage.textContent =
+            "An error occurred fetching gallery.";
+          galleryContainer.innerHTML = "";
+          galleryEmptyMessage.style.display = "block";
+        }
+      }
+
+
+      async function calculateScore(filePath, prompt, buttonElement) {
+        if (buttonElement.disabled) return; 
+
+        const originalText = buttonElement.textContent;
+        const originalColor = buttonElement.style.backgroundColor;
+
+        buttonElement.disabled = true;
+        buttonElement.textContent = 'Calculating...';
+        
+        const payload = { filePath: filePath, prompt: prompt };
+        let scoreCalculated = false; 
+
+        try {
+            const res = await fetch("/api/image/score", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json();
+            
+            if (data.success && data.score !== undefined) {
+                const scorePercent = (data.score * 100).toFixed(1);
+                buttonElement.textContent = `Accuracy: ${scorePercent}%`;
+                buttonElement.style.backgroundColor = '#28a745';
+                scoreCalculated = true;
+            } else {
+                buttonElement.textContent = 'Failed';
+                buttonElement.style.backgroundColor = '#dc3545';
+                console.error('Score API Failed:', data.msg || 'No score returned.');
+            }
+        } catch (error) {
+            buttonElement.textContent = 'Error';
+            buttonElement.style.backgroundColor = '#dc3545';
+            console.error('Network/Parsing Error:', error);
+        } finally {
+            if (!scoreCalculated) {
+                 setTimeout(() => {
+                     buttonElement.textContent = originalText;
+                     buttonElement.style.backgroundColor = originalColor;
+                     buttonElement.disabled = false;
+                 }, 3000); 
+            }
+        }
+      }
+
+      function getSubjectOnly(fullPrompt) {
+          // 1. Remove parenthetical weighting, which can confuse simple extraction
+          let cleanPrompt = fullPrompt.replace(/\([^:]+:\d+\.\d+\)/g, '').trim(); 
+          
+          // 2. Find the first major separator (usually a comma) or limit to 5 words
+          let parts = cleanPrompt.split(',');
+          let subject = parts[0].trim();
+
+          // 3. Take the first few words to isolate the core concept
+          return subject.split(/\s+/).slice(0, 5).join(' ');
+      }
+
+      function renderGallery(items) {
+        galleryContainer.innerHTML = "";
+
+        if (items.length === 0) {
+          galleryEmptyMessage.style.display = "block";
+          return;
+        } else {
+          galleryEmptyMessage.style.display = "none";
+        }
+        items.forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "gallery-item";
+          let mediaElement;
+          if (item.status === "completed") {
+            const mediaPath = `/${item.filePath}`;
+            if (item.type === "image") {
+              mediaElement = document.createElement("img");
+              mediaElement.src = mediaPath;
+              mediaElement.alt = item.prompt || "Generated Image";
+              mediaElement.addEventListener("click", () => {
+                window.open(mediaPath, "_blank");
+              });
+            } else if (item.type === "video") {
+              mediaElement = document.createElement("video");
+              mediaElement.controls = true;
+              mediaElement.autoplay = true;
+              mediaElement.loop = true;
+              mediaElement.src = mediaPath;
+              mediaElement.alt = item.prompt || "Generated Video";
+              mediaElement.addEventListener("click", () => {
+                window.open(mediaPath, "_blank");
+              });
+            } else if (item.type === "story") {
+              mediaElement = document.createElement("div");
+              mediaElement.className = "status-message success";
+              mediaElement.textContent = "Story Generated!";
+              const downloadLink = document.createElement("a");
+              downloadLink.href = mediaPath;
+              downloadLink.textContent = "Download Story";
+              downloadLink.className = "download-link";
+              mediaElement.appendChild(downloadLink);
+            }
+          } else {
+            mediaElement = document.createElement("div");
+            mediaElement.className = `status-message ${
+              item.status === "failed" ? "error" : ""
+            }`;
+            mediaElement.textContent =
+              item.status === "pending" ? "Generating..." : "Generation Failed";
+          }
+          if (mediaElement) {
+            itemDiv.appendChild(mediaElement);
+          }
+          const infoDiv = document.createElement("div");
+          infoDiv.className = "item-info";
+          const promptPara = document.createElement("p");
+          promptPara.className = "item-prompt";
+          const seedText = item.seed ? ` (Seed: ${item.seed})` : "";
+          promptPara.textContent = `Prompt: ${item.prompt || "N/A"}${seedText}`;
+          infoDiv.appendChild(promptPara);
+          const datePara = document.createElement("p");
+          datePara.className = "item-date";
+          datePara.textContent = `Generated: ${new Date(item.createdAt).toLocaleDateString()}`;
+          infoDiv.appendChild(datePara);
+
+          // // --- ACCURACY BUTTON LOGIC (FOR IMAGES ONLY) ---
+          // if (item.type === "image" && item.status === "completed") {
+          //     const scoreBtn = document.createElement("button");
+          //     scoreBtn.textContent = "Check Accuracy (CLIP)";
+          //     scoreBtn.style.cssText = 'padding: 5px 10px; margin-top: 5px; font-size: 0.8em; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s;';
+              
+          //     scoreBtn.onclick = function() {
+          //         const subjectToScore = getSubjectOnly(item.prompt); 
+          //         calculateScore(item.filePath, subjectToScore, scoreBtn);
+          //     };
+          //     infoDiv.appendChild(scoreBtn); 
+          // }
+          // // --- END ACCURACY BUTTON LOGIC ---
+
+          itemDiv.appendChild(infoDiv);
+          galleryContainer.appendChild(itemDiv);
+        });
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        updateColorControls();
+        updateRealismPrompt(realismSlider.value);
+        renderCategoryButtons();
+        const firstCategory = Object.keys(categorizedSuggestionsData)[0];
+        if (firstCategory) {
+          renderSuggestions(categorizedSuggestionsData[firstCategory]);
+          setActiveCategory(firstCategory);
+        }
+        fetchGallery();
+        setInterval(fetchGallery, 10000);
+      });
+    </script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Content Generator - App & Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <style>
+      /* ======================================================================== */
+      /* --- BASE STYLES --- */
+      /* ======================================================================== */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+      .container {
+        max-width: 900px;
+        margin: 20px auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1, h2, h3 {
+        color: #0056b3;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .auth-links {
+        text-align: right;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+      }
+      #logoutButton {
+        background-color: #dc3545;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+      }
+      input[type="text"], input[type="file"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .generate-button-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+      }
+      .generate-button-wrapper button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      #enhance-button, #enhance-video-button {
+          background-color: #9c27b0;
+          font-weight: bold;
+          width: 100%;
+          margin-bottom: 15px;
+          color: white;
+          border: none;
+          padding: 10px;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      .generation-section {
+        background: #e9ecef;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .message {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .message.success { background-color: #d4edda; color: #155724; }
+      .message.error { background-color: #f8d7da; color: #721c24; }
+      .message.info { background-color: #cfe2ff; color: #084298; }
+
+      /* --- GALLERY STYLES --- */
+      .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+      .gallery-item { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); text-align: center; cursor: pointer; }
+      .gallery-item img, .gallery-item video { width: 100%; height: 200px; object-fit: cover; }
+      
+      /* --- EDITOR MODAL STYLES --- */
+      #editorModal {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+        align-items: center; z-index: 2000; padding-top: 20px;
+      }
+      #canvasContainer { flex: 1; display: flex; justify-content: center; align-items: center; width: 100%; }
+      #toolbar { display: flex; flex-wrap: wrap; justify-content: center; width: 100%; background: #222; padding: 15px 0; gap: 10px; }
+      #toolbar button { background: #444; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+      #toolbar button:hover { background: #666; }
+      #editorSliderContainer { width: 80%; padding: 20px; background: #333; color: white; display: none; flex-direction: column; align-items: center; }
+      
+      /* --- ADVANCED CONTROL STYLES --- */
+      .advanced-control-wrapper { margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; background-color: #f9f9f9; }
+      .control-header { padding: 10px 15px; background-color: #e0e0e0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+      .control-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; padding: 0 15px; }
+      .advanced-control-wrapper.open .control-content { max-height: 500px; padding: 15px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="auth-links">
+        <span id="welcomeMessage">Welcome to the App!</span>
+        <button id="logoutButton">Logout</button>
+      </div>
+      <h1>AI Content Generator</h1>
+
+      <div class="generation-section">
+        <h3>Generate / Edit Image</h3>
+        <input type="text" id="imagePrompt" placeholder="Enter prompt (e.g., 'a cat in space')"/>
+        
+        <div class="generate-button-wrapper" style="margin-bottom: 15px;">
+            <label for="sourceImageUpload" style="width: 100%; text-align: center; background-color: #f0f0f0; border: 1px solid #ccc; padding: 8px; border-radius: 5px; cursor: pointer;">
+                Upload Source Image (Optional)
+            </label>
+            <input type="file" id="sourceImageUpload" accept="image/*" style="display: none;" />
+        </div>
+
+        <button id="enhance-button" onclick="sendPromptForEnhancement()">✨ Enhance Prompt (AI Assistant)</button>
+        <div id="prompt-suggestion-area" style="display:none; padding:10px; border-radius:5px; margin-bottom:10px;"></div>
+
+        <div class="advanced-control-wrapper" id="colorControlWrapper">
+          <div class="control-header" onclick="toggleControl('colorControlWrapper')">
+            <span>🎨 Color Palette</span> <span class="toggle-icon">></span>
+          </div>
+          <div class="control-content">
+            <input type="range" id="hue-range" min="0" max="360" value="240" oninput="updateColorControls()" />
+            <p id="current-color-value">HSL(240, 70%, 50%)</p>
+          </div>
+        </div>
+
+        <div class="generate-button-wrapper">
+          <button id="generateImageBtn">Generate Image</button>
+        </div>
+      </div>
+
+      <div class="generation-section">
+        <h3>Generate Video</h3>
+        <input type="text" id="videoTextPrompt" placeholder="Enter video prompt..."/>
+        <button id="generateVideoFromTextBtn" style="width:100%; padding:10px; background:#007bff; color:white; border:none; border-radius:5px;">Generate Video</button>
+      </div>
+
+      <p class="message" id="generalStatusMessage"></p>
+
+      <h2>Your Gallery</h2>
+      <div class="gallery-grid" id="galleryContainer"></div>
+    </div>
+
+    <div id="editorModal">
+      <div id="canvasContainer">
+        <canvas id="canvas" width="500" height="500"></canvas>
+      </div>
+      <div id="toolbar">
+        <button onclick="undoChange()">⟵ Back</button>
+        <button onclick="setFilter('brightness')">Brightness</button>
+        <button onclick="setFilter('contrast')">Contrast</button>
+        <button onclick="setFilter('saturation')">Saturation</button>
+        <button onclick="rotateImage()">Rotate</button>
+        <button onclick="enableCrop()">Crop</button>
+        <button onclick="applyCrop()" style="background:#28a745;">Apply Crop</button>
+        <button onclick="downloadImage()" style="background:#007bff;">Download</button>
+        <button onclick="closeEditor()" style="background:#dc3545;">Close</button>
+      </div>
+      <div id="editorSliderContainer">
+        <label id="filterLabel">Adjust Intensity</label>
+        <input type="range" id="editorSlider" min="-1" max="1" step="0.01" value="0">
+      </div>
+    </div>
+
+    <script>
+      /* --- CORE APP LOGIC --- */
+      const imagePromptInput = document.getElementById("imagePrompt");
+      const galleryContainer = document.getElementById("galleryContainer");
+      const generalStatusMessage = document.getElementById("generalStatusMessage");
+
+      // Toggle Advanced Controls
+      function toggleControl(id) { document.getElementById(id).classList.toggle("open"); }
+
+      // Fetch Gallery and Handle Clicks
+      async function fetchGallery() {
+        const res = await fetch("/api/gallery");
+        const data = await res.json();
+        if (data.success) {
+          galleryContainer.innerHTML = "";
+          data.gallery.forEach(item => {
+            if (item.status === "completed") {
+              const div = document.createElement("div");
+              div.className = "gallery-item";
+              const mediaPath = `/${item.filePath}`;
+
+              if (item.type === "image") {
+                const img = document.createElement("img");
+                img.src = mediaPath;
+                // --- CLICK TO EDIT ---
+                img.onclick = () => openEditor(mediaPath);
+                div.appendChild(img);
+              } else {
+                const vid = document.createElement("video");
+                vid.src = mediaPath;
+                vid.controls = true;
+                div.appendChild(vid);
+              }
+              galleryContainer.appendChild(div);
+            }
+          });
+        }
+      }
+
+      /* --- FABRIC.JS EDITOR LOGIC --- */
+      const modal = document.getElementById('editorModal');
+      const sliderContainer = document.getElementById('editorSliderContainer');
+      const slider = document.getElementById('editorSlider');
+      const canvas = new fabric.Canvas('canvas', { preserveObjectStacking: true });
+      let currentImage, currentFilter, cropRect, canvasHistory = [];
+
+      function saveState() {
+        canvasHistory.push(canvas.toJSON());
+        if (canvasHistory.length > 10) canvasHistory.shift();
+      }
+
+      function openEditor(url) {
+        modal.style.display = 'flex';
+        fabric.Image.fromURL(url, img => {
+          canvas.clear();
+          currentImage = img;
+          const scale = Math.min(500 / img.width, 500 / img.height);
+          img.set({ left: 250, top: 250, scaleX: scale, scaleY: scale, originX: 'center', originY: 'center' });
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          canvas.renderAll();
+          saveState();
+        }, { crossOrigin: 'anonymous' });
+      }
+
+      function closeEditor() { modal.style.display = 'none'; canvas.clear(); }
+
+      function setFilter(filter) {
+        currentFilter = filter;
+        sliderContainer.style.display = 'flex';
+        slider.value = 0;
+      }
+
+      slider.oninput = () => {
+        if (!currentImage) return;
+        const val = parseFloat(slider.value);
+        let f;
+        if (currentFilter === 'brightness') f = new fabric.Image.filters.Brightness({ brightness: val });
+        if (currentFilter === 'contrast') f = new fabric.Image.filters.Contrast({ contrast: val });
+        if (currentFilter === 'saturation') f = new fabric.Image.filters.Saturation({ saturation: val });
+        currentImage.filters = [f];
+        currentImage.applyFilters();
+        canvas.renderAll();
+      };
+
+      function rotateImage() { currentImage.rotate((currentImage.angle + 90) % 360); canvas.renderAll(); saveState(); }
+
+      function enableCrop() {
+        cropRect = new fabric.Rect({ left: 100, top: 100, width: 200, height: 200, fill: 'rgba(0,0,0,0.3)', stroke: 'red', selectable: true });
+        canvas.add(cropRect);
+        canvas.setActiveObject(cropRect);
+      }
+
+      function applyCrop() {
+        const rect = cropRect.getBoundingRect();
+        const croppedData = canvas.toDataURL({ left: rect.left, top: rect.top, width: rect.width, height: rect.height });
+        fabric.Image.fromURL(croppedData, img => {
+          canvas.clear(); canvas.add(img); currentImage = img; saveState();
+        });
+      }
+
+      function downloadImage() {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL({ format: 'png' });
+        link.download = 'ai_edit.png';
+        link.click();
+      }
+
+      /* --- INITIALIZE --- */
+      document.getElementById("generateImageBtn").onclick = async () => {
+        const prompt = imagePromptInput.value;
+        await fetch("/api/generate/image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+        fetchGallery();
+      };
+
+      document.getElementById("logoutButton").onclick = () => {
+        fetch("/api/logout", { method: "POST" }).then(() => window.location.href = "/login");
+      };
+
+      setInterval(fetchGallery, 5000);
+      fetchGallery();
+    </script>
+  </body>
+</html> -->

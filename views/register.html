@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AI Content Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-form { max-width: 400px; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; width: 100%; }
+        .auth-form h2 { color: #0056b3; margin-bottom: 20px; }
+        .auth-form input { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .auth-form button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; width: 100%; }
+        .auth-form button:hover { opacity: 0.9; }
+        .auth-form a { display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
+        .message { margin-top: 15px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; }
+        .message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="auth-form">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
+        <p class="message" id="statusMessage"></p>
+        <a href="/login">Already have an account? Login here</a>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const statusMessage = document.getElementById('statusMessage');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            statusMessage.className = 'message';
+            statusMessage.textContent = 'Registering...';
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    statusMessage.className = 'message success';
+                    statusMessage.textContent = data.msg + ' Redirecting to login...';
+                    setTimeout(() => {
+                        window.location.href = '/login'; // Still redirect to login after register
+                    }, 1000);
+                } else {
+                    statusMessage.className = 'message error';
+                    statusMessage.textContent = data.msg || 'Registration failed.';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                statusMessage.className = 'message error';
+                statusMessage.textContent = 'An error occurred during registration.';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
