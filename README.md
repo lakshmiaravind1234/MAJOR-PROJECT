@@ -1,4 +1,4 @@
-# AI Multi-Modal Content Generator & Editor
+# AI Multi-Model Content Generator & Editor
 
 A full-stack generative AI platform that allows users to create high-quality images, cinematic video clips, and stories from text prompts. The application features a dedicated ML pipeline, an automated prompt engineering assistant, and a built-in professional image editor.
 
