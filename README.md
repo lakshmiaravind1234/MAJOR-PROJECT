@@ -1,81 +1,527 @@
-# AI Multi-Model Content Generator & Editor
+# 🎨 Echoverse — AI Multi-Model Content Generator & Editor
 
-A full-stack generative AI platform that allows users to create high-quality images, cinematic video clips, and stories from text prompts. The application features a dedicated ML pipeline, an automated prompt engineering assistant, and a built-in professional image editor.
+**Echoverse** is a full-stack Generative AI platform that transforms text prompts into **AI-generated images, cinematic video clips, and stories**.
 
-## Key Features
-
-* **AI Image Generation:** Generate images using Stable Diffusion with automatic seed consistency for recurring subjects.
-* **Video Generation:** Text-to-video pipeline powered by Stable Video Diffusion (SVD) with optimized VRAM management.
-* **AI Prompt Enhancer:** Integrated Gemini AI assistant to transform simple ideas into descriptive, high-quality art prompts.
-* **Pro Photo Editor:** Built-in Fabric.js editor allowing for cropping, rotation, and real-time filters (Brightness, Contrast, Saturation, Blur).
-* **Secure Auth:** Complete User Authentication system with JWT, Bcrypt password hashing, and MongoDB storage.
-* **Smart Gallery:** Automated gallery that polls for content status (Pending/Completed/Failed) in real-time.
+The platform combines **Generative AI, diffusion models, automated prompt enhancement, and a professional image editor** into a single application.
 
 ---
 
-## Tech Stack
+## ✨ Key Features
 
-* **Frontend:** HTML5, CSS3, JavaScript (ES6+), Fabric.js.
-* **Backend:** Node.js, Express.js, MongoDB (Mongoose), JWT.
-* **Machine Learning:** Python 3.10+, PyTorch, Diffusers (Stable Diffusion & SVD).
+### 🖼️ AI Image Generation
 
+* Generate high-quality images using **Stable Diffusion**.
+* Support for seed consistency to maintain recurring subjects across generations.
+
+### 🎬 Video Generation
+
+* Generate cinematic video clips using **Stable Video Diffusion (SVD)**.
+* Includes optimized VRAM management for the ML pipeline.
+
+### 🧠 AI Prompt Enhancement
+
+* Uses **Google Gemini AI** to transform simple ideas into detailed and descriptive prompts.
+* Helps users create better prompts for image generation.
+
+### 🎨 Professional Image Editor
+
+* Built-in **Fabric.js** image editor.# 🎨 Echoverse — AI Multi-Model Content Generator & Editor
+
+**Echoverse** is a full-stack Generative AI platform that transforms text prompts into **AI-generated images, cinematic video clips, and stories**.
+
+The platform combines **Generative AI, diffusion models, automated prompt enhancement, and a professional image editor** into a single application.
 
 ---
 
-## Installation & Setup
+## ✨ Key Features
+
+### 🖼️ AI Image Generation
+
+* Generate high-quality images using **Stable Diffusion**.
+* Support for seed consistency to maintain recurring subjects across generations.
+
+### 🎬 Video Generation
+
+* Generate cinematic video clips using **Stable Video Diffusion (SVD)**.
+* Includes optimized VRAM management for the ML pipeline.
+
+### 🧠 AI Prompt Enhancement
+
+* Uses **Google Gemini AI** to transform simple ideas into detailed and descriptive prompts.
+* Helps users create better prompts for image generation.
+
+### 🎨 Professional Image Editor
+
+* Built-in **Fabric.js** image editor.
+* Supports:
+
+  * Cropping
+  * Rotation
+  * Brightness
+  * Contrast
+  * Saturation
+  * Blur
+  * Real-time editing
+
+### 🔐 Secure Authentication
+
+* User authentication using **JWT**.
+* Password hashing using **Bcrypt**.
+* User and content data stored in **MongoDB**.
+
+### 🖼️ Smart Gallery
+
+* Automatically tracks generated content.
+* Displays generation status such as:
+
+  * Pending
+  * Completed
+  * Failed
+
+---
+
+## 🏗️ Application Architecture
+
+Echoverse combines a web application layer with a dedicated Python-based machine learning pipeline.
+
+```text
+                    ┌─────────────────────┐
+                    │       User          │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Web Application   │
+                    │ HTML / CSS / JS     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Node.js + Express │
+                    │      Backend        │
+                    └──────┬───────┬──────┘
+                           │       │
+                ┌──────────┘       └──────────┐
+                ▼                             ▼
+       ┌────────────────┐             ┌──────────────┐
+       │    MongoDB     │             │ Gemini AI    │
+       │ User & Content │             │Prompt Enhance│
+       └────────────────┘             └──────────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │ Python ML       │
+                  │ Pipeline        │
+                  └────────┬────────┘
+                           │
+                  ┌────────┴────────┐
+                  ▼                 ▼
+          ┌───────────────┐  ┌──────────────────┐
+          │Stable Diffusion│  │Stable Video     │
+          │ Image Generation│ │Diffusion (SVD) │
+          └───────────────┘  └──────────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+* HTML5
+* CSS3
+* JavaScript (ES6+)
+* Fabric.js
+
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JWT
+
+### Machine Learning & Generative AI
+
+* Python 3.10+
+* PyTorch
+* Hugging Face Diffusers
+* Stable Diffusion
+* Stable Video Diffusion
+* Google Gemini AI
+
+---
+
+## 📂 Project Structure
+
+```text
+Echoverse/
+│
+├── ml_scripts/          # Python-based ML generation scripts
+├── models/              # Model-related components
+├── views/               # Application views
+│
+├── app.js               # Node.js / Express application
+├── package.json         # Node.js dependencies
+├── package-lock.json    # Dependency lock file
+├── README.md            # Project documentation
+└── .gitignore           # Ignored files and folders
+```
+
+> The project structure may evolve as additional modules and features are added.
+
+---
+
+## ⚙️ Installation & Setup
 
 ### 1. Clone the Repository
 
-git clone [https://github.com/lakshmiaravind1234/MAJOR-PROJECT.git](https://github.com/lakshmiaravind1234/MAJOR-PROJECT.git)
+```bash
+git clone https://github.com/lakshmiaravind1234/Echoverse.git
+cd Echoverse
+```
 
-cd MAJOR-PROJECT
+### 2. Configure Environment Variables
 
-### 2. Set Up Environment Variables
-Create a .env file in the root directory and add:
+Create a `.env` file in the project root:
 
+```env
 MONGO_URI=your_mongodb_connection_string
-
 JWT_SECRET=your_random_secret_key
-
 PORT=3000
+```
 
+> **Never commit your `.env` file or expose API keys, database credentials, or other secrets on GitHub.**
 
 ### 3. Install Node.js Dependencies
 
+```bash
 npm install
+```
 
-### 4. Python Environment Setup (venv)
-The ML pipeline runs on Python. It is highly recommended to use a virtual environment to avoid package conflicts.
+### 4. Create a Python Virtual Environment
 
-Create the Virtual Environment:
+The machine learning pipeline uses Python.
 
+```bash
 python -m venv venv_new
+```
 
-### 5.Activate the Environment:
+#### Windows
 
-* **Windows:**
-
-PowerShell
+```powershell
 .\venv_new\Scripts\activate
+```
 
-* **Linux/MacOS:**
+#### Linux / macOS
 
-
+```bash
 source venv_new/bin/activate
-Install Required Packages:
-Once activated, install the core ML libraries:
+```
 
+### 5. Install Python Dependencies
 
-pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu118](https://download.pytorch.org/whl/cu118)
+For a CUDA 11.8 environment:
 
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+Then install the core ML libraries:
+
+```bash
 pip install diffusers transformers accelerate safetensors Pillow
+```
 
-Note: If you have a requirements.txt file, you can install everything at once using:
+If the project contains a `requirements.txt` file:
+
+```bash
 pip install -r requirements.txt
+```
 
-### 6. Running the Application
-Start the Backend:
+### 6. Start the Application
 
+```bash
 node app.js
-### 7. Access the App:
-Open http://localhost:3000 in your browser.
+```
+
+### 7. Open the Application
+
+Open the following address in your browser:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 📸 Screenshots
+
+Screenshots of the application will be added here to demonstrate:
+
+* Image generation
+* AI prompt enhancement
+* Video generation
+* Image editor
+* Smart gallery
+* User authentication
+
+---
+
+## 🔮 Future Enhancements
+
+Potential future improvements include:
+
+* Additional generative AI models
+* Improved video generation capabilities
+* More advanced image editing tools
+* Enhanced generation history and gallery management
+* Cloud-based deployment
+* Performance optimization for ML inference
+
+---
+
+## 👨‍💻 Author
+
+**Lakshmi Aravind Reddy**
+
+Aspiring **Data Analyst & Data Scientist** with an interest in **Generative AI, Machine Learning, Data Analytics, and AI-powered applications**.
+
+---
+
+⭐ If you find this project interesting, consider giving the repository a star!
+
+* Supports:
+
+  * Cropping
+  * Rotation
+  * Brightness
+  * Contrast
+  * Saturation
+  * Blur
+  * Real-time editing
+
+### 🔐 Secure Authentication
+
+* User authentication using **JWT**.
+* Password hashing using **Bcrypt**.
+* User and content data stored in **MongoDB**.
+
+### 🖼️ Smart Gallery
+
+* Automatically tracks generated content.
+* Displays generation status such as:
+
+  * Pending
+  * Completed
+  * Failed
+
+---
+
+## 🏗️ Application Architecture
+
+Echoverse combines a web application layer with a dedicated Python-based machine learning pipeline.
+
+```text
+                    ┌─────────────────────┐
+                    │       User          │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Web Application   │
+                    │ HTML / CSS / JS     │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Node.js + Express │
+                    │      Backend        │
+                    └──────┬───────┬──────┘
+                           │       │
+                ┌──────────┘       └──────────┐
+                ▼                             ▼
+       ┌────────────────┐             ┌──────────────┐
+       │    MongoDB     │             │ Gemini AI    │
+       │ User & Content │             │Prompt Enhance│
+       └────────────────┘             └──────────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │ Python ML       │
+                  │ Pipeline        │
+                  └────────┬────────┘
+                           │
+                  ┌────────┴────────┐
+                  ▼                 ▼
+          ┌───────────────┐  ┌──────────────────┐
+          │Stable Diffusion│  │Stable Video     │
+          │ Image Generation│ │Diffusion (SVD) │
+          └───────────────┘  └──────────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+* HTML5
+* CSS3
+* JavaScript (ES6+)
+* Fabric.js
+
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JWT
+
+### Machine Learning & Generative AI
+
+* Python 3.10+
+* PyTorch
+* Hugging Face Diffusers
+* Stable Diffusion
+* Stable Video Diffusion
+* Google Gemini AI
+
+---
+
+## 📂 Project Structure
+
+```text
+Echoverse/
+│
+├── ml_scripts/          # Python-based ML generation scripts
+├── models/              # Model-related components
+├── views/               # Application views
+│
+├── app.js               # Node.js / Express application
+├── package.json         # Node.js dependencies
+├── package-lock.json    # Dependency lock file
+├── README.md            # Project documentation
+└── .gitignore           # Ignored files and folders
+```
+
+> The project structure may evolve as additional modules and features are added.
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/lakshmiaravind1234/Echoverse.git
+cd Echoverse
+```
+
+### 2. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_random_secret_key
+PORT=3000
+```
+
+> **Never commit your `.env` file or expose API keys, database credentials, or other secrets on GitHub.**
+
+### 3. Install Node.js Dependencies
+
+```bash
+npm install
+```
+
+### 4. Create a Python Virtual Environment
+
+The machine learning pipeline uses Python.
+
+```bash
+python -m venv venv_new
+```
+
+#### Windows
+
+```powershell
+.\venv_new\Scripts\activate
+```
+
+#### Linux / macOS
+
+```bash
+source venv_new/bin/activate
+```
+
+### 5. Install Python Dependencies
+
+For a CUDA 11.8 environment:
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+
+Then install the core ML libraries:
+
+```bash
+pip install diffusers transformers accelerate safetensors Pillow
+```
+
+If the project contains a `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 6. Start the Application
+
+```bash
+node app.js
+```
+
+### 7. Open the Application
+
+Open the following address in your browser:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 📸 Screenshots
+
+Screenshots of the application will be added here to demonstrate:
+
+* Image generation
+* AI prompt enhancement
+* Video generation
+* Image editor
+* Smart gallery
+* User authentication
+
+---
+
+## 🔮 Future Enhancements
+
+Potential future improvements include:
+
+* Additional generative AI models
+* Improved video generation capabilities
+* More advanced image editing tools
+* Enhanced generation history and gallery management
+* Cloud-based deployment
+* Performance optimization for ML inference
+
+---👨‍💻 Author
+
+Lakshmi Aravind Reddy
+
+Aspiring Data Analyst & Data Scientist with an interest in Generative AI, Machine Learning, Data Analytics, and AI-powered applications.
+
+⭐ If you find this project interesting, consider giving the repository a star!
+
